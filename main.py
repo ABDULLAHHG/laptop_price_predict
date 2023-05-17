@@ -33,7 +33,7 @@ width = (width.rename('Width')).astype(int)
 df = df.join([GPU_Brand,brand,frequency,width,height])
 
 
-# There is labtops has more than 1 hard and less than 3 
+# There is laptops has more than 1 hard and less than 3 
 df["Memory-1"] = df.Memory.apply(lambda x:x.split('+')[0])
 df["Memory-2"] = df.Memory.apply(lambda x:x.split('+')[-1] if "+" in x else '0GB')
 
@@ -50,14 +50,16 @@ df.Weight = df.Weight.apply(lambda x:float(x.replace('kg',''))*1000)
 df.Ram = df.Ram.apply(lambda x:int(x.replace('GB',''))*1000)
 
 # Convert string colums to binary (get_dummies)
-GPU_Brand = pd.get_dummies(df['GPU_Brand'])
-CPU_Brand = pd.get_dummies(df['CPU_Brand'])
+GPU_Brand = pd.get_dummies(df['GPU_Brand'],prefix = 'GPU')
+CPU_Brand = pd.get_dummies(df['CPU_Brand'],prefix = 'CPU')
 company = pd.get_dummies(df['Company'])
 OpSys = pd.get_dummies(df['OpSys'])
 TypeName = pd.get_dummies(df['TypeName'])
-Type_Memory_1 = pd.get_dummies(df['Type-Memory-1'])
-Type_Memory_2 = pd.get_dummies(df['Type-Memory-2'])
+Type_Memory_1 = pd.get_dummies(df['Type-Memory-1'],prefix ='Type_Memory_1')
+Type_Memory_2 = pd.get_dummies(df['Type-Memory-2'],prefix ='Type_Memory_2')
 
+# Join columns 
+df = df.join([GPU_Brand,CPU_Brand,company,OpSys,TypeName,Type_Memory_1,Type_Memory_2])
 
 # Drop columns 
 df = df.drop('ScreenResolution',axis=1)
@@ -66,10 +68,27 @@ df = df.drop('Memory-2',axis = 1)
 df = df.drop('Memory',axis =1 )
 df = df.drop('Cpu',axis = 1 )
 df = df.drop('Gpu',axis = 1 )
+df = df.drop('GPU_Brand',axis = 1 )
+df = df.drop('CPU_Brand',axis = 1 )
+df = df.drop('Company',axis = 1 )
+df = df.drop('OpSys',axis = 1)
+df = df.drop('TypeName',axis = 1 )
+df = df.drop('Type-Memory-1', axis = 1 )
+df = df.drop('Type-Memory-2', axis = 1 )
+df = df.drop('Product' ,axis = 1 )
+df = df.drop('laptop_ID',axis = 1)
 
 # show dataframe on website 
-slt.dataframe(df)
+slt.dataframe(df.corr())
 
+## Feature selection 
+# Specific column with higher corr 
+feature = abs(df.corr()).sort_values(by='Price_euros')[-15::].index
+
+# show corrilation 
+plt.figure(figsize = (20,10))
+fig = sns.heatmap(df[feature].corr(),fmt='.2f',annot =True ,cmap='YlGnBu') 
+slt.pyplot(plt)
 
 
 
