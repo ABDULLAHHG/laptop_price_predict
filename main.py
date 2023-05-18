@@ -4,10 +4,18 @@ import matplotlib.pyplot as plt
 import seaborn as sns 
 import streamlit as slt
 
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import StandardScaler
+
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+
 # Read dataset 
 df = pd.read_csv("~/data/laptop_price.csv",encoding='Latin')
 
-
+#slt.dataframe(df)
 selectdict = {'company':[i for i in df.Company.value_counts().index],
               'CPU_Brand' : [ i[0] for i in df.Cpu.value_counts().index]}
 
@@ -50,13 +58,23 @@ df.Weight = df.Weight.apply(lambda x:float(x.replace('kg',''))*1000)
 df.Ram = df.Ram.apply(lambda x:int(x.replace('GB',''))*1000)
 
 # Convert string colums to binary (get_dummies)
-GPU_Brand = pd.get_dummies(df['GPU_Brand'],prefix = 'GPU')
-CPU_Brand = pd.get_dummies(df['CPU_Brand'],prefix = 'CPU')
-company = pd.get_dummies(df['Company'])
-OpSys = pd.get_dummies(df['OpSys'])
-TypeName = pd.get_dummies(df['TypeName'])
-Type_Memory_1 = pd.get_dummies(df['Type-Memory-1'],prefix ='Type_Memory_1')
-Type_Memory_2 = pd.get_dummies(df['Type-Memory-2'],prefix ='Type_Memory_2')
+GPU_Brand = pd.get_dummies(df['GPU_Brand'],prefix = 'GPU').astype(int)
+CPU_Brand = pd.get_dummies(df['CPU_Brand'],prefix = 'CPU').astype(int)
+company = pd.get_dummies(df['Company']).astype(int)
+OpSys = pd.get_dummies(df['OpSys']).astype(int)
+TypeName = pd.get_dummies(df['TypeName']).astype(int)
+Type_Memory_1 = pd.get_dummies(df['Type-Memory-1'],prefix ='Type_Memory_1').astype(int)
+Type_Memory_2 = pd.get_dummies(df['Type-Memory-2'],prefix ='Type_Memory_2').astype(int)
+
+# list of variables for user to input 
+list_of_copmanies = df['Company'].value_counts().index
+list_of_CPU = df['Cpu'].value_counts().index
+list_of_GPU = df['Gpu'].value_counts().index
+list_of_Types = df['TypeName'].value_counts().index
+list_of_SR = df['ScreenResolution'].value_counts().index
+list_of_OpSys = df['OpSys'].value_counts().index
+list_of_Memories = df['Memory'].value_counts().index
+list_of_Ram = df['Ram'].value_counts().index
 
 # Join columns 
 df = df.join([GPU_Brand,CPU_Brand,company,OpSys,TypeName,Type_Memory_1,Type_Memory_2])
@@ -79,18 +97,67 @@ df = df.drop('Product' ,axis = 1 )
 df = df.drop('laptop_ID',axis = 1)
 
 # show dataframe on website 
-slt.dataframe(df.corr())
+#slt.dataframe(df)
 
 ## Feature selection 
 # Specific column with higher corr 
-feature = abs(df.corr()).sort_values(by='Price_euros')[-15::].index
+feature = abs(df.corr()).sort_values(by='Price_euros')[-10::].index
 
 # show corrilation 
-plt.figure(figsize = (20,10))
-fig = sns.heatmap(df[feature].corr(),fmt='.2f',annot =True ,cmap='YlGnBu') 
-slt.pyplot(plt)
+#plt.figure(figsize = (20,10))
+#fig = sns.heatmap(df[feature].corr(),fmt='.2f',annot =True ,cmap='YlGnBu') 
+#slt.pyplot(plt)
+
+# Split the data to train and test 
+X = df.drop('Price_euros',axis = 1 )
+y = df['Price_euros']
+X_trian ,X_test ,y_train , y_test = train_test_split(X,y,test_size=0.25)
+
+# scale the data with StandardScaler
+SC = StandardScaler()
+SC.fit(X_trian)
+X_trian = SC.transform(X_trian)
+X_test = SC.transform(X_test)
+
+## Machaine Learing 
+# Random Forest Regressor 
+RFR = RandomForestRegressor(n_estimators=10)
+RFR.fit(X_trian, y_train)
+y_hat = RFR.predict(X_test)
+
+# accuracy check Random Forest Regressor 
+MAE = mean_absolute_error(y_test,y_hat)
+print(MAE)
+MSE = mean_squared_error(y_test,y_hat)
+print(MSE)
+
+# Linear Regression
+lr = LinearRegression()
+lr.fit(X_trian, y_train)
+y_hat = lr.predict(X_test)
+
+# accuracy check Random Linear Regression  
+print('Linear Regression')
+MAE = mean_absolute_error(y_hat,y_test )
+print(MAE)
+MSE = mean_squared_error(y_test,y_hat)
+print(MSE)
+
+## Select box 
+# CPU 
+
+
+# GPU 
+
+# Ram size 
+
+# Memory 
+
+# Screen Resolution 
+
+# Company
 
 
 
 
-
+print(df.info())
