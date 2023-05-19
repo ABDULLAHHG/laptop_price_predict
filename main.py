@@ -11,6 +11,8 @@ from sklearn.preprocessing import StandardScaler
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import VotingRegressor
 
 # Read dataset 
 df = pd.read_csv("~/data/laptop_price.csv",encoding='Latin')
@@ -101,7 +103,7 @@ df = df.drop('laptop_ID',axis = 1)
 
 ## Feature selection 
 # Specific column with higher corr 
-feature = abs(df.corr()).sort_values(by='Price_euros')[-10::].index
+feature = abs(df.corr()).sort_values(by='Price_euros')[-15::].index
 
 # show corrilation 
 #plt.figure(figsize = (20,10))
@@ -116,13 +118,13 @@ X_trian ,X_test ,y_train , y_test = train_test_split(X,y,test_size=0.25)
 # scale the data with StandardScaler
 SC = StandardScaler()
 SC.fit(X_trian)
-X_trian = SC.transform(X_trian)
+X_train = SC.transform(X_trian)
 X_test = SC.transform(X_test)
 
 ## Machaine Learing 
 # Random Forest Regressor 
-RFR = RandomForestRegressor(n_estimators=10)
-RFR.fit(X_trian, y_train)
+RFR = RandomForestRegressor(n_estimators=10000)
+RFR.fit(X_train, y_train)
 y_hat = RFR.predict(X_test)
 
 # accuracy check Random Forest Regressor 
@@ -133,15 +135,36 @@ print(MSE)
 
 # Linear Regression
 lr = LinearRegression()
-lr.fit(X_trian, y_train)
+lr.fit(X_train, y_train)
 y_hat = lr.predict(X_test)
 
 # accuracy check Random Linear Regression  
 print('Linear Regression')
-MAE = mean_absolute_error(y_hat,y_test )
+MAE = mean_absolute_error(y_test,y_hat)
 print(MAE)
 MSE = mean_squared_error(y_test,y_hat)
 print(MSE)
+
+
+# Initialize individual regression models
+model3 = DecisionTreeRegressor()
+
+# Create a voting ensemble using the individual models
+ensemble_model = VotingRegressor([('rf', RFR), ('dt', model3)])
+
+# Fit the ensemble model to your training data
+ensemble_model.fit(X_train, y_train)
+
+# Make predictions using the ensemble model
+y_hat = ensemble_model.predict(X_test)
+
+# accuracy check Random Linear Regression  
+print('ensemble model')
+MAE = mean_absolute_error(y_test,y_hat)
+print(MAE)
+MSE = mean_squared_error(y_test,y_hat)
+print(MSE)
+
 
 ## Select box 
 # CPU 
@@ -158,6 +181,3 @@ print(MSE)
 # Company
 
 
-
-
-print(df.info())
