@@ -20,14 +20,18 @@ import tensorflow as tf
 # Read dataset 
 df = pd.read_csv("~/data/laptop_price.csv",encoding='Latin')
 
-slt.dataframe(df)
-selectdict = {'company':[i for i in df.Company.value_counts().index],
-              'CPU_Brand' : [ i[0] for i in df.Cpu.value_counts().index]}
+# list of variables for user to input 
+list_of_copmanies = df['Company'].value_counts().index
+list_of_CPU = df['Cpu'].value_counts().index
+list_of_GPU = df['Gpu'].value_counts().index
+list_of_Types = df['TypeName'].value_counts().index
+list_of_SR = df['ScreenResolution'].value_counts().index
+list_of_OpSys = df['OpSys'].value_counts().index
+list_of_Memories = df['Memory'].value_counts().index
+list_of_Ram = df['Ram'].value_counts().index
+list_of_Inches = df['Inches'].value_counts().index
 
-#company =slt.selectbox('Company',[i for i in df.Company.value_counts().index])
-#slt.dataframe(df[df['Company'] == company ])
-#slt.selectbox('dataframe',selectdict )
-#slt.select_slider('company',selectdict)
+# preprocessing 
 def preprocessoring(df):
  
     # Convet CPU to Frequency and Brand  
@@ -58,7 +62,8 @@ def preprocessoring(df):
     df['Size-Memory-2'] =df['Memory-2'].apply(lambda x:float(x.split()[0].replace('GB',''))*1000 if 'GB' in x else float(x.split()[0].replace('TB',''))*1000000)
 
     # convert Weight to float
-    df.Weight = df.Weight.apply(lambda x:float(x.replace('kg',''))*1000)
+
+    df.Weight = df.Weight.apply(lambda x:(float(x.replace('kg',''))*1000) if 'kg' in x else x )
 
     # convert RAM to MB and convert it to int 
     df.Ram = df.Ram.apply(lambda x:int(x.replace('GB',''))*1000)
@@ -71,16 +76,6 @@ def preprocessoring(df):
     TypeName = pd.get_dummies(df['TypeName']).astype(int)
     Type_Memory_1 = pd.get_dummies(df['Type-Memory-1'],prefix ='Type_Memory_1').astype(int)
     Type_Memory_2 = pd.get_dummies(df['Type-Memory-2'],prefix ='Type_Memory_2').astype(int)
-
-    # list of variables for user to input 
-    list_of_copmanies = df['Company'].value_counts().index
-    list_of_CPU = df['Cpu'].value_counts().index
-    list_of_GPU = df['Gpu'].value_counts().index
-    list_of_Types = df['TypeName'].value_counts().index
-    list_of_SR = df['ScreenResolution'].value_counts().index
-    list_of_OpSys = df['OpSys'].value_counts().index
-    list_of_Memories = df['Memory'].value_counts().index
-    list_of_Ram = df['Ram'].value_counts().index
 
     # Join columns 
     df = df.join([GPU_Brand,CPU_Brand,company,OpSys,TypeName,Type_Memory_1,Type_Memory_2])
@@ -99,19 +94,40 @@ def preprocessoring(df):
     df = df.drop('TypeName',axis = 1 )
     df = df.drop('Type-Memory-1', axis = 1 )
     df = df.drop('Type-Memory-2', axis = 1 )
-    df = df.drop('Product' ,axis = 1 )
-    df = df.drop('laptop_ID',axis = 1)
+    if 'Product' in df.columns:
+        df = df.drop('Product' ,axis = 1 )
+        df = df.drop('laptop_ID',axis = 1)
+    return df
 
-# show dataframe on website 
-#slt.dataframe(df)
+
+# editing user input 
+def create_input_user(x,user_input_df):
+    dict = {}
+    for i in x.columns:
+        dict[i] = [0] 
+    
+    user_df = pd.DataFrame(dict)
+    user_input = preprocessoring(user_input_df)
+    user_input = pd.concat([user_input,user_df])
+    user_input = user_input.fillna(0).reset_index().drop(['index','Price_euros'],axis = 1).drop(1,axis = 0)
+    return user_input
+
+
+# Call preprocessing func 
+df = preprocessoring(df)
+
+# show dataframe on website
+
+# sidebar 
+slt.sidebar.header('Edit on the Model')
 
 ## Feature selection 
-nof = slt.select_slider("Number of features",[i for i in range(df.shape[1])])
+nof = slt.sidebar.select_slider("Number of features",[i for i in range(df.shape[1])])
 
 # Specific column with higher corr 
-feature = abs(df.corr()).sort_values(by='Price_euros')[-nof::].index
+feature = abs(df.corr()).sort_values(by = 'Price_euros')[-nof::].index
 
-# show corrilation 
+# show corrilation plot
 # plt.figure(figsize = (20,10))
 # fig = sns.heatmap(df[feature].corr(),fmt='.2f',annot =True ,cmap='YlGnBu') 
 # slt.pyplot(plt)
@@ -122,7 +138,7 @@ y = df['Price_euros']
 X_train ,X_test ,y_train , y_test = train_test_split(X,y,test_size=0.25)
 
 # Select Scaler 
-Selected = slt.selectbox('Select Scaler',['StandardScaler','MinMaxScaler','None'])
+Selected = slt.sidebar.selectbox('Select Scaler',['StandardScaler','MinMaxScaler','None'])
 
 if Selected == "StandardScaler":
     Standard_Scaler = 1
@@ -149,36 +165,75 @@ if Min_Max_Scaler == 1:
     X_train = SMM.transform(X_train)
     X_test = SMM.transform(X_test)
 
-
-n_estimatos = slt.select_slider("Number oo Estimatores ",[i for i in range(1,1001)]) 
-
-
+# Select model to use in machine learing 
+select_model = slt.sidebar.selectbox('Select Model', ['Random Forest Regressor','Linear Regression'])
 ## Machaine Learing 
-# Random Forest Regressor 
-RFR = RandomForestRegressor(n_estimators=n_estimatos)
-RFR.fit(X_train, y_train)
-y_hat = RFR.predict(X_test)
 
-# accuracy check Random Forest Regressor 
-MAE = mean_absolute_error(y_test,y_hat)
-print(MAE)
-MSE = mean_squared_error(y_test,y_hat)
-print(MSE)
-slt.text(f'MAE :{MAE}')
+def create_model (select_model,X_train,X_test,y_train,y_test):
 
+    # Random Forest Regressor
+    if select_model == 'Random Forest Regressor':
+        n_estimatos = slt.sidebar.select_slider("Number of Estimatores ",[i for i in range(1,1001)]) 
+        RFR = RandomForestRegressor(n_estimators=n_estimatos)
+        RFR.fit(X_train, y_train)
+        y_hat = RFR.predict(X_test)
 
+        # accuracy check Random Forest Regressor 
+        MAE = mean_absolute_error(y_test,y_hat)
+        print(MAE)
+        MSE = mean_squared_error(y_test,y_hat)
+        print(MSE)
+        slt.sidebar.text(f'MAE :{MAE}')
+        return RFR 
 
-# Linear Regression
-#lr = LinearRegression()
-#lr.fit(X_train, y_train)
-#y_hat = lr.predict(X_test)
+    # Linear Regression
+    if select_model == 'Linear Regression':
+        lr = LinearRegression()
+        lr.fit(X_train, y_train)
+        y_hat = lr.predict(X_test)
 
-# accuracy check Random Linear Regression  
-#print('Linear Regression')
-#MAE = mean_absolute_error(y_test,y_hat)
-#print(MAE)
-#MSE = mean_squared_error(y_test,y_hat)
-#print(MSE)
+        #accuracy check Linear Regression  
+        print('Linear Regression')
+        MAE = mean_absolute_error(y_test,y_hat)
+        print(MAE)
+        MSE = mean_squared_error(y_test,y_hat)
+        slt.sidebar.text(f'MAE :{MAE}')
+        return lr 
+        
+   
+
+# Select User input
+Selected_com = slt.selectbox('list of copmanies',[i for i in list_of_copmanies])
+Selected_CPU = slt.selectbox('list of CPUs',[i for i in list_of_CPU])
+Selected_GPU = slt.selectbox('list of GPUs',[i for i in list_of_GPU])
+Selected_Type = slt.selectbox('list of Types',[i for i in list_of_Types])
+Selected_SR = slt.selectbox('list of Screen Resolutions',[i for i in list_of_SR])
+Selected_OpSys = slt.selectbox('list of Opreating systems',[i for i in list_of_OpSys])
+Selected_Memory = slt.selectbox('list of Memories',[i for i in list_of_Memories])
+Selected_Ram = slt.selectbox('list of Rams',[i for i in list_of_Ram])
+Selected_Inche = slt.selectbox('list of Inches',[i for i in list_of_Inches])
+
+# Save selected to dataframe 
+user_input_dict ={
+       'Company':[Selected_com],
+       'Cpu' : [Selected_CPU],
+       'Gpu' : [Selected_GPU],
+       'TypeName': [Selected_Type],
+       'ScreenResolution' : [Selected_SR],
+       'OpSys' : [Selected_OpSys],
+       'Memory' : [Selected_Memory],
+       'Ram' : [Selected_Ram],
+       'Inches' :[Selected_Inche],
+       'Weight' : [(str(df.Weight.mean()//1000)+'kg')]
+       }
+
+model = create_model(select_model, X_train, X_test, y_train, y_test)
+
+user_input_df = pd.DataFrame(user_input_dict)
+user_input = create_input_user(df,user_input_df)
+price = model.predict(user_input)
+slt.text(price)
+
 
 
 ## Initialize individual regression models
