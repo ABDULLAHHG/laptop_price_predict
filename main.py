@@ -18,7 +18,7 @@ from sklearn.model_selection import GridSearchCV
 import tensorflow as tf
 from tensorflow import keras
 # Read dataset 
-df = pd.read_csv("~/data/laptop_price.csv",encoding='Latin')
+df = pd.read_csv("laptop_price.csv",encoding='Latin')
 
 # list of variables for user to input 
 list_of_copmanies = df['Company'].value_counts().index
