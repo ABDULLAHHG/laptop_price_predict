@@ -16,7 +16,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import VotingRegressor
 from sklearn.model_selection import GridSearchCV 
 import tensorflow as tf
-
+from tensorflow import keras
 # Read dataset 
 df = pd.read_csv("~/data/laptop_price.csv",encoding='Latin')
 
@@ -166,7 +166,8 @@ if Min_Max_Scaler == 1:
     X_test = SMM.transform(X_test)
 
 # Select model to use in machine learing 
-select_model = slt.sidebar.selectbox('Select Model', ['Random Forest Regressor','Linear Regression'])
+select_model = slt.sidebar.selectbox('Select Model', ['Random Forest Regressor','Linear Regression',
+                                                      'Tensorflow'])
 ## Machaine Learing 
 
 def create_model (select_model,X_train,X_test,y_train,y_test):
@@ -199,6 +200,27 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
         MSE = mean_squared_error(y_test,y_hat)
         slt.sidebar.text(f'MAE :{MAE}')
         return lr 
+    
+    # Tensorflow'
+    if select_model =='Tensorflow':
+        model = keras.Sequential()
+        #model.add(layers.Dense(3, activation="relu"))
+
+        def layer(model):
+            type_of_layer=slt.sidebar.selectbox('Select type of layer',['Dense'])
+            type_of_activation=slt.sidebar.selectbox('Select type of activation',['relu'])
+            number_of_units=slt.sidebar.select_slider('chosse number of units',range(1,1000))
+            model.add(tf.layers.type_of_layer(number_of_units,activation=type_of_activation))
+            return model
+
+        number_of_layers = slt.sidebar.select_slider('chosse number of layers',range(100))
+        for i in range(number_of_layers):
+            model = layer(model)
+        
+
+
+        
+
         
    
 
