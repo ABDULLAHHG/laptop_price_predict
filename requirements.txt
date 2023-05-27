@@ -1,0 +1,10 @@
+matplotlib==3.7.1
+matplotlib-inline @ file:///home/conda/feedstock_root/build_artifacts/matplotlib-inline_1660814786464/work
+tensorflow==2.12.0
+tensorflow-cpu-aws==2.12.0
+tensorflow-estimator==2.12.0
+tensorflow-io-gcs-filesystem==0.32.0
+numpy==1.23.5
+pandas==2.0.1
+seaborn==0.12.2
+scikit-learn==1.2.2
