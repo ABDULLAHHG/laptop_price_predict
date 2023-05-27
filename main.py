@@ -122,7 +122,7 @@ df = preprocessoring(df)
 slt.sidebar.header('Edit on the Model')
 
 ## Feature selection 
-nof = slt.sidebar.select_slider("Number of features",[i for i in range(df.shape[1])])
+nof = slt.sidebar.select_slider("Number of features",[i for i in range(df.shape[1])],15)
 
 # Specific column with higher corr 
 feature = abs(df.corr()).sort_values(by = 'Price_euros')[-nof::].index
@@ -174,7 +174,7 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
 
     # Random Forest Regressor
     if select_model == 'Random Forest Regressor':
-        n_estimatos = slt.sidebar.select_slider("Number of Estimatores ",[i for i in range(1,1001)]) 
+        n_estimatos = slt.sidebar.select_slider("Number of Estimatores ",[i for i in range(1,1001)],100) 
         RFR = RandomForestRegressor(n_estimators=n_estimatos)
         RFR.fit(X_train, y_train)
         y_hat = RFR.predict(X_test)
