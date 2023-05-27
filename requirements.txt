@@ -1,5 +1,5 @@
 matplotlib==3.7.1
-matplotlib-inline @ file:///home/conda/feedstock_root/build_artifacts/matplotlib-inline_1660814786464/work
+matplotlib-inline
 tensorflow==2.12.0
 tensorflow-cpu-aws==2.12.0
 tensorflow-estimator==2.12.0
