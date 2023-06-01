@@ -18,7 +18,7 @@ from sklearn.model_selection import GridSearchCV
 import tensorflow as tf
 from tensorflow import keras
 # Read dataset 
-df = pd.read_csv("laptop_price.csv",encoding='Latin')
+df = pd.read_csv("/home/user/laptop_price_predict/laptop_price.csv",encoding='Latin')
 
 # list of variables for user to input 
 list_of_copmanies = df['Company'].value_counts().index
@@ -174,8 +174,11 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
 
     # Random Forest Regressor
     if select_model == 'Random Forest Regressor':
-        n_estimatos = slt.sidebar.select_slider("Number of Estimatores ",[i for i in range(1,1001)],100) 
-        RFR = RandomForestRegressor(n_estimators=n_estimatos)
+        n_estimatos = slt.sidebar.select_slider("Number of Estimatores ",[i for i in range(1,1001)],100)
+        max_features = slt.sidebar.selectbox("select max features ",['sqrt','log2'])
+        max_depth = slt.sidebar.select_slider("Number of max depth ",[i for i in range(1,50)],10)
+
+        RFR = RandomForestRegressor(n_estimators=n_estimatos,max_features = max_features ,max_depth = max_depth )
         RFR.fit(X_train, y_train)
         y_hat = RFR.predict(X_test)
 
@@ -206,16 +209,25 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
         model = keras.Sequential()
         #model.add(layers.Dense(3, activation="relu"))
 
-        def layer(model):
-            type_of_layer=slt.sidebar.selectbox('Select type of layer',['Dense'])
-            type_of_activation=slt.sidebar.selectbox('Select type of activation',['relu'])
-            number_of_units=slt.sidebar.select_slider('chosse number of units',range(1,1000))
-            model.add(tf.layers.type_of_layer(number_of_units,activation=type_of_activation))
-            return model
 
-        number_of_layers = slt.sidebar.select_slider('chosse number of layers',range(100))
+        number_of_layers = slt.sidebar.select_slider('chosse number of layers',range(1,11))
         for i in range(number_of_layers):
-            model = layer(model)
+         #   typel   = f"type_{i}"
+         #  locals()[typel] = i
+         #   activation = f"activation_{i}"
+         #  locals()[ activation ] = i
+         #   unite  = f"number_{i}"
+         #  locals()[unite] = i
+
+            type_of_layer=slt.sidebar.selectbox(f'Select type of layer {i}',['Dense'])
+            type_of_activation=slt.sidebar.selectbox(f'Select type of activation {i}',['relu'])
+            number_of_units=slt.sidebar.select_slider(f'chosse number of units {i}',range(1,1000))
+            if type_of_layer == 'Dense':
+                model.add(tf.keras.layers.Dense(number_of_units,activation=type_of_activation))
+        return model 
+
+
+        
         
 
 
