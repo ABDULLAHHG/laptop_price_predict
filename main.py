@@ -16,7 +16,7 @@ from sklearn.model_selection import GridSearchCV
 
 
 # Read dataset 
-df = pd.read_csv("/home/user/laptop_price_predict/laptop_price.csv",encoding='Latin')
+df = pd.read_csv("laptop_price.csv",encoding='Latin')
 
 # list of variables for user to input 
 list_of_copmanies = df['Company'].value_counts().index
