@@ -10,13 +10,11 @@ from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import VotingRegressor
 from sklearn.model_selection import GridSearchCV 
-import tensorflow as tf
-from tensorflow import keras
+
+
 # Read dataset 
 df = pd.read_csv("/home/user/laptop_price_predict/laptop_price.csv",encoding='Latin')
 
@@ -174,6 +172,7 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
 
     # Random Forest Regressor
     if select_model == 'Random Forest Regressor':
+        from sklearn.ensemble import RandomForestRegressor
         n_estimatos = slt.sidebar.select_slider("Number of Estimatores ",[i for i in range(1,1001)],100)
         max_features = slt.sidebar.selectbox("select max features ",['sqrt','log2'])
         max_depth = slt.sidebar.select_slider("Number of max depth ",[i for i in range(1,50)],10)
@@ -192,6 +191,8 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
 
     # Linear Regression
     if select_model == 'Linear Regression':
+        from sklearn.linear_model import LinearRegression
+
         lr = LinearRegression()
         lr.fit(X_train, y_train)
         y_hat = lr.predict(X_test)
@@ -206,35 +207,41 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
     
     # Tensorflow'
     if select_model =='Tensorflow':
-        model = keras.Sequential()
-        #model.add(layers.Dense(3, activation="relu"))
+        import tensorflow as tf
+        from tensorflow import keras
 
+
+        # create Sequential model
+        model = keras.Sequential()
 
         number_of_layers = slt.sidebar.select_slider('chosse number of layers',range(1,11))
         for i in range(number_of_layers):
-         #   typel   = f"type_{i}"
-         #  locals()[typel] = i
-         #   activation = f"activation_{i}"
-         #  locals()[ activation ] = i
-         #   unite  = f"number_{i}"
-         #  locals()[unite] = i
-
+            
+            # User input for each layer 
             type_of_layer=slt.sidebar.selectbox(f'Select type of layer {i}',['Dense'])
             type_of_activation=slt.sidebar.selectbox(f'Select type of activation {i}',['relu'])
             number_of_units=slt.sidebar.select_slider(f'chosse number of units {i}',range(1,1000))
             if type_of_layer == 'Dense':
                 model.add(tf.keras.layers.Dense(number_of_units,activation=type_of_activation))
+
+        # Compile the model
+        model.compile(loss=tf.keras.losses.mae, # mae is short for mean absolute error              
+        optimizer=tf.keras.optimizers.SGD(), # SGD is short for stochastic gradient descent
+        metrics=["mae"])
+        
+        ## Train the model
+        history = model.fit(X_train, y_train, epochs=50, verbose=0)
+        
+
+        y_hat = model.predict(X_test)
+
+        #accuracy check Tensorflow model 
+        MAE = mean_absolute_error(y_test,y_hat)
+        MSE = mean_squared_error(y_test,y_hat)
+        slt.sidebar.text(f'MAE :{MAE}')
+        
         return model 
 
-
-        
-        
-
-
-        
-
-        
-   
 
 # Select User input
 Selected_com = slt.selectbox('list of copmanies',[i for i in list_of_copmanies])
@@ -290,23 +297,6 @@ slt.text(price)
 #MSE = mean_squared_error(y_test,y_hat)
 #print(MSE)
 #slt.text(f'MAE :{MAE}')
-# Tensorflow 
-#model = tf.keras.Sequential([
-#    tf.keras.layers.Dense(1),
-#    tf.keras.layers.Dense(6),
-#    tf.keras.layers.Dense(3),
-#    tf.keras.layers.Dense(1)
-
-
-#])
-
-# Compile the model
-#model.compile(loss=tf.keras.losses.mae, # mae is short for mean absolute error
-#              optimizer=tf.keras.optimizers.SGD(), # SGD is short for stochastic gradient descent
-#              metrics=["mae"])
-
-## Train the model
-#history = model.fit(X_train, y_train, epochs=50, verbose=0)
 
 ## Print the learned parameters
 #weights, bias = model.get_weights()
