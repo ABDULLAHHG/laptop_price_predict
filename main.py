@@ -9,6 +9,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selectionl import 
 
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import VotingRegressor
@@ -198,7 +199,6 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
         y_hat = lr.predict(X_test)
 
         #accuracy check Linear Regression  
-        print('Linear Regression')
         MAE = mean_absolute_error(y_test,y_hat)
         print(MAE)
         MSE = mean_squared_error(y_test,y_hat)
@@ -219,10 +219,13 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
             
             # User input for each layer 
             type_of_layer=slt.sidebar.selectbox(f'Select type of layer {i}',['Dense'])
-            type_of_activation=slt.sidebar.selectbox(f'Select type of activation {i}',['relu'])
+            type_of_activation=slt.sidebar.selectbox(f'Select type of activation {i}',['relu','sigmoid'])
             number_of_units=slt.sidebar.select_slider(f'chosse number of units {i}',range(1,1000))
             if type_of_layer == 'Dense':
                 model.add(tf.keras.layers.Dense(number_of_units,activation=type_of_activation))
+            
+            if type_of_layer == '2Dcove':
+                pass 
 
         # Compile the model
         model.compile(loss=tf.keras.losses.mae, # mae is short for mean absolute error              
