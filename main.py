@@ -9,7 +9,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selectionl import 
+#from sklearn.model_selectionl import 
 
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import VotingRegressor
@@ -276,7 +276,7 @@ model = create_model(select_model, X_train, X_test, y_train, y_test)
 user_input_df = pd.DataFrame(user_input_dict)
 user_input = create_input_user(df,user_input_df)
 price = model.predict(user_input)
-slt.text(price)
+slt.text(price/10)
 
 
 
