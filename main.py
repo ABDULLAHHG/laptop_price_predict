@@ -15,6 +15,8 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import VotingRegressor
 from sklearn.model_selection import GridSearchCV 
 
+# Header 
+slt.header("Laptop Price Predict")
 
 # Read dataset 
 df = pd.read_csv("laptop_price.csv",encoding='Latin')
@@ -111,6 +113,8 @@ def create_input_user(x,user_input_df):
     user_input = user_input.fillna(0).reset_index().drop(['index','Price_euros'],axis = 1).drop(1,axis = 0)
     return user_input
 
+# SubHeader
+slt.subheader('User Input')
 
 # Call preprocessing func 
 df = preprocessoring(df)
@@ -124,17 +128,21 @@ slt.sidebar.header('Edit on the Model')
 nof = slt.sidebar.select_slider("Number of features",[i for i in range(df.shape[1])],15)
 
 # Specific column with higher corr 
-feature = abs(df.corr()).sort_values(by = 'Price_euros')[-nof::].index
+feature = abs(df.corr()).sort_values(by = 'Price_euros')[-nof:-1:].index
 
 # show corrilation plot
 # plt.figure(figsize = (20,10))
 # fig = sns.heatmap(df[feature].corr(),fmt='.2f',annot =True ,cmap='YlGnBu') 
 # slt.pyplot(plt)
-
 # Split the data to train and test 
 X = df.drop('Price_euros',axis = 1 )
 y = df['Price_euros']
+X = X[feature]
 X_train ,X_test ,y_train , y_test = train_test_split(X,y,test_size=0.25)
+
+
+X_train.iloc[0]=0
+user =X_train[X_train.Ram == 0]
 
 # Select Scaler 
 Selected = slt.sidebar.selectbox('Select Scaler',['StandardScaler','MinMaxScaler','None'])
@@ -166,7 +174,7 @@ if Min_Max_Scaler == 1:
 
 # Select model to use in machine learing 
 select_model = slt.sidebar.selectbox('Select Model', ['Random Forest Regressor','Linear Regression',
-                                                      'Tensorflow'])
+                                                      'Neural Networks'])
 ## Machaine Learing 
 
 def create_model (select_model,X_train,X_test,y_train,y_test):
@@ -206,7 +214,7 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
         return lr 
     
     # Tensorflow'
-    if select_model =='Tensorflow':
+    if select_model =='Neural Networks':
         import tensorflow as tf
         from tensorflow import keras
 
@@ -247,15 +255,15 @@ def create_model (select_model,X_train,X_test,y_train,y_test):
 
 
 # Select User input
-Selected_com = slt.selectbox('list of copmanies',[i for i in list_of_copmanies])
-Selected_CPU = slt.selectbox('list of CPUs',[i for i in list_of_CPU])
-Selected_GPU = slt.selectbox('list of GPUs',[i for i in list_of_GPU])
-Selected_Type = slt.selectbox('list of Types',[i for i in list_of_Types])
-Selected_SR = slt.selectbox('list of Screen Resolutions',[i for i in list_of_SR])
-Selected_OpSys = slt.selectbox('list of Opreating systems',[i for i in list_of_OpSys])
-Selected_Memory = slt.selectbox('list of Memories',[i for i in list_of_Memories])
-Selected_Ram = slt.selectbox('list of Rams',[i for i in list_of_Ram])
-Selected_Inche = slt.selectbox('list of Inches',[i for i in list_of_Inches])
+Selected_com = slt.selectbox('List of Copmanies',[i for i in list_of_copmanies])
+Selected_CPU = slt.selectbox('List of CPUs',[i for i in list_of_CPU])
+Selected_GPU = slt.selectbox('List of GPUs',[i for i in list_of_GPU])
+Selected_Type = slt.selectbox('List of Types',[i for i in list_of_Types])
+Selected_SR = slt.selectbox('List of Screen Resolutions',[i for i in list_of_SR])
+Selected_OpSys = slt.selectbox('List of Opreating Systems',[i for i in list_of_OpSys])
+Selected_Memory = slt.selectbox('List of Memories',[i for i in list_of_Memories])
+Selected_Ram = slt.selectbox('List of Rams',[i for i in list_of_Ram])
+Selected_Inche = slt.selectbox('List of Inches',[i for i in list_of_Inches])
 
 # Save selected to dataframe 
 user_input_dict ={
@@ -266,8 +274,8 @@ user_input_dict ={
        'ScreenResolution' : [Selected_SR],
        'OpSys' : [Selected_OpSys],
        'Memory' : [Selected_Memory],
-       'Ram' : [Selected_Ram],
        'Inches' :[Selected_Inche],
+       'Ram' : [Selected_Ram],
        'Weight' : [(str(df.Weight.mean()//1000)+'kg')]
        }
 
@@ -275,59 +283,19 @@ model = create_model(select_model, X_train, X_test, y_train, y_test)
 
 user_input_df = pd.DataFrame(user_input_dict)
 user_input = create_input_user(df,user_input_df)
-price = model.predict(user_input)
-slt.text(price/10)
 
+for col in user.columns:
+    for Ucol in user_input.columns:
+        if col == Ucol:
+            user[col] =user_input[Ucol][0]
 
+# Scale User Input with StandardScaler
+if Standard_Scaler == 1:
+    user = SC.transform(user)
 
-## Initialize individual regression models
-#model3 = DecisionTreeRegressor()
-
-## Create a voting ensemble using the individual models
-#ensemble_model = VotingRegressor([('rf', RFR), ('dt', model3)])
-
-## Fit the ensemble model to your training data
-#ensemble_model.fit(X_train, y_train)
-
-
-## Make predictions using the ensemble model
-#y_hat = ensemble_model.predict(X_test)
-
-## accuracy check Random Linear Regression  
-#print('ensemble model')
-#MAE = mean_absolute_error(y_test,y_hat)
-#print(MAE)
-#MSE = mean_squared_error(y_test,y_hat)
-#print(MSE)
-#slt.text(f'MAE :{MAE}')
-
-## Print the learned parameters
-#weights, bias = model.get_weights()
-#print("Learned parameters:")
-#print(f"Weights: {weights[0][0]:.2f}")
-#print(f"Bias: {bias[0]:.2f}")
-
-# Plot the data and the regression line
-#y_pred = model.predict(X_test)
-#plt.scatter(x, y, label='Data')
-#plt.plot(x, y_pred, color='red', label='Regression Line')
-#plt.xlabel('x')
-#plt.ylabel('y')
-#plt.legend()
-#plt.show()
-
-## Select box 
-# CPU 
-
-
-# GPU 
-
-# Ram size 
-
-# Memory 
-
-# Screen Resolution 
-
-# Company
-
-
+# Scale User Input with MinMaxScaler
+if Min_Max_Scaler == 1:
+    user = SMM.transform(user)
+    
+price = model.predict(user)
+slt.text(price/5)

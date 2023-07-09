@@ -1,0 +1,2 @@
+#!/bin/bash
+code-server &> /dev/null & streamlit run main.py &> /dev/null &
