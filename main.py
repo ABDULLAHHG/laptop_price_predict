@@ -130,17 +130,13 @@ nof = slt.sidebar.select_slider("Number of features",[i for i in range(df.shape[
 # Specific column with higher corr 
 feature = abs(df.corr()).sort_values(by = 'Price_euros')[-nof:-1:].index
 
-# show corrilation plot
-# plt.figure(figsize = (20,10))
-# fig = sns.heatmap(df[feature].corr(),fmt='.2f',annot =True ,cmap='YlGnBu') 
-# slt.pyplot(plt)
 # Split the data to train and test 
 X = df.drop('Price_euros',axis = 1 )
 y = df['Price_euros']
 X = X[feature]
 X_train ,X_test ,y_train , y_test = train_test_split(X,y,test_size=0.25)
 
-
+# Create dataframe of 1 Row all zeros from the X_train
 X_train.iloc[0]=0
 user =X_train[X_train.Ram == 0]
 
