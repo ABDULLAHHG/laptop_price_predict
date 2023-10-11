@@ -1,5 +1,6 @@
 import pandas as pd 
 import streamlit as slt
+import numpy as np
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
@@ -291,4 +292,5 @@ if Min_Max_Scaler == 1:
     user = SMM.transform(user)
     
 price = model.predict(user)
-slt.text(price/5)
+slt.text('')
+slt.text(f'Price is : {(np.round(price/5),2)[0][0]}$')
